@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/lib/utils";
 import TransactionModal from "@/components/TransactionModal";
 import { mutate as globalMutate } from "swr";
-import { Camera, Bot, CheckCircle2, Images } from "lucide-react";
+import { Camera, Bot, CheckCircle2, Images, Camera as CameraIcon } from "lucide-react";
+import { Camera as CapCamera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Capacitor } from "@capacitor/core";
 
 type ScanResult = {
     store: string | null;
@@ -28,6 +30,59 @@ export default function AIScanPage() {
     // Separate refs for camera (main) and gallery (secondary action)
     const cameraRef = useRef<HTMLInputElement>(null);
     const galleryRef = useRef<HTMLInputElement>(null);
+
+    const triggerCamera = async () => {
+        if (Capacitor.isNativePlatform()) {
+            try {
+                const photo = await CapCamera.getPhoto({
+                    quality: 90,
+                    allowEditing: false,
+                    resultType: CameraResultType.Uri,
+                    source: CameraSource.Camera
+                });
+                if (photo.webPath) {
+                    const response = await fetch(photo.webPath);
+                    const blob = await response.blob();
+                    const file = new File([blob], "struk.jpg", { type: "image/jpeg" });
+                    handleFile(file);
+                }
+            } catch (e) {
+                console.log("Camera cancelled or failed", e);
+            }
+        } else {
+            cameraRef.current?.click();
+        }
+    };
+
+    const triggerGallery = async () => {
+        if (Capacitor.isNativePlatform()) {
+            try {
+                const photo = await CapCamera.getPhoto({
+                    quality: 90,
+                    allowEditing: false,
+                    resultType: CameraResultType.Uri,
+                    source: CameraSource.Photos
+                });
+                if (photo.webPath) {
+                    const response = await fetch(photo.webPath);
+                    const blob = await response.blob();
+                    const file = new File([blob], "struk.jpg", { type: "image/jpeg" });
+                    handleFile(file);
+                }
+            } catch (e) {
+                console.log("Gallery cancelled or failed", e);
+            }
+        } else {
+            galleryRef.current?.click();
+        }
+    };
+
+    // Auto-trigger camera on mount if native (as requested)
+    useState(() => {
+        if (Capacitor.isNativePlatform() && !image) {
+            triggerCamera();
+        }
+    });
 
     const handleFile = useCallback((file: File) => {
         if (!file.type.startsWith("image/")) { setError("File harus berupa gambar."); return; }
@@ -110,22 +165,22 @@ export default function AIScanPage() {
                 {preview ? (
                     <>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={preview} alt="Preview struk" className="max-h-64 max-w-full rounded-xl object-contain shadow-sm p-2 cursor-pointer" onClick={() => cameraRef.current?.click()} />
-                        <button onClick={(e) => { e.stopPropagation(); galleryRef.current?.click(); }}
+                        <img src={preview} alt="Preview struk" className="max-h-64 max-w-full rounded-xl object-contain shadow-sm p-2 cursor-pointer" onClick={() => triggerCamera()} />
+                        <button onClick={(e) => { e.stopPropagation(); triggerGallery(); }}
                             className="md:hidden absolute bottom-3 right-3 p-2.5 bg-white rounded-full shadow-lg text-indigo-600 hover:bg-indigo-50 transition-colors border border-slate-200 z-10 hover:scale-105 active:scale-95"
                             title="Pilih dari Galeri">
                             <Images size={20} strokeWidth={2} />
                         </button>
                     </>
                 ) : (
-                    <div className="flex flex-col items-center justify-center w-full h-full cursor-pointer absolute inset-0" onClick={() => cameraRef.current?.click()}>
+                    <div className="flex flex-col items-center justify-center w-full h-full cursor-pointer absolute inset-0" onClick={() => triggerCamera()}>
                         <div className="text-indigo-400 mb-2 p-4 rounded-full bg-indigo-50">
-                            <Camera size={40} strokeWidth={1.5} className="text-indigo-500" />
+                            <CameraIcon size={40} strokeWidth={1.5} className="text-indigo-500" />
                         </div>
                         <p className="font-bold text-base text-center px-4" style={{ color: "var(--text-main)" }}>Buka Kamera</p>
                         <p className="text-xs mt-1 text-center font-medium" style={{ color: "var(--text-muted)" }}>atau klik untuk foto langsung</p>
 
-                        <button onClick={(e) => { e.stopPropagation(); galleryRef.current?.click(); }}
+                        <button onClick={(e) => { e.stopPropagation(); triggerGallery(); }}
                             className="md:hidden absolute bottom-3 right-3 p-2.5 bg-white rounded-full shadow-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors border border-slate-200 z-10 hover:scale-105 active:scale-95"
                             title="Pilih dari Galeri">
                             <Images size={20} strokeWidth={2} />

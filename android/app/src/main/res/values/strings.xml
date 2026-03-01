@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">kuangan</string>
+    <string name="title_activity_main">kuangan</string>
+    <string name="package_name">com.kuangan.app</string>
+    <string name="custom_url_scheme">com.kuangan.app</string>
+</resources>
