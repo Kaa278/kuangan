@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String?
+  passwordHash String        @map("password_hash")
+  telegramId   String?       @unique @map("telegram_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  wallets      Wallet[]
+  categories   Category[]
+  transactions Transaction[]
+  aiLogs       AILog[]
+
+  @@map("users")
+}
+
+model Wallet {
+  id           String        @id @default(cuid())
+  name         String
+  balance      Decimal       @default(0) @db.Decimal(15, 2)
+  icon         String        @default("wallet")
+  color        String        @default("#6366f1")
+  userId       String        @map("user_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("wallets")
+}
+
+model Category {
+  id           String        @id @default(cuid())
+  name         String
+  type         CategoryType
+  color        String        @default("#6366f1")
+  icon         String        @default("tag")
+  userId       String        @map("user_id")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("categories")
+}
+
+model Transaction {
+  id         String            @id @default(cuid())
+  amount     Decimal           @db.Decimal(15, 2)
+  type       CategoryType
+  categoryId String            @map("category_id")
+  walletId   String            @map("wallet_id")
+  note       String?
+  store      String?
+  date       DateTime          @default(now())
+  source     TransactionSource @default(manual)
+  userId     String            @map("user_id")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category          @relation(fields: [categoryId], references: [id])
+  wallet     Wallet            @relation(fields: [walletId], references: [id])
+
+  @@index([userId])
+  @@index([date])
+  @@index([type])
+  @@map("transactions")
+}
+
+model AILog {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  rawResponse   String?  @db.Text
+  parsedSuccess Boolean  @default(false) @map("parsed_success")
+  imageSize     Int?     @map("image_size")
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("ai_logs")
+}
+
+enum CategoryType {
+  income
+  expense
+}
+
+enum TransactionSource {
+  manual
+  ai_scan
+}
