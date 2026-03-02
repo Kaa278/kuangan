@@ -1,6 +1,4 @@
-node_modules
-.next
 android
-out
 *.apk
-.git
+capacitor.config.ts
+TELEGRAM_SETUP.md
