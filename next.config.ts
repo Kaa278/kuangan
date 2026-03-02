@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     "**/*": []
   },
   outputFileTracingExcludes: {
-    "**/*": ["android/**/*", "out/**/*", "android", "out"]
+    "**/*": ["android/**/*", "out/**/*", "android", "out", "node_modules/@prisma/engines/**/*"]
   }
 };
 
