@@ -6,7 +6,6 @@ import { formatCurrency } from "@/lib/utils";
 import TransactionModal from "@/components/TransactionModal";
 import { mutate as globalMutate } from "swr";
 import { Camera, Bot, CheckCircle2, Images, Camera as CameraIcon, X, Zap, RefreshCw, Sparkles, ReceiptText } from "lucide-react";
-import { Capacitor } from "@capacitor/core";
 
 type ScanResult = {
     store: string | null;
