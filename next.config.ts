@@ -5,10 +5,8 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "**/*": []
   },
-  experimental: {
-    outputFileTracingExcludes: {
-      "**/*": ["android/**/*", "out/**/*", "android", "out"]
-    }
+  outputFileTracingExcludes: {
+    "**/*": ["android/**/*", "out/**/*", "android", "out"]
   }
 };
 
