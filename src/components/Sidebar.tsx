@@ -23,11 +23,9 @@ export default function Sidebar({ user }: { user: { name: string; email: string 
         <>
             {/* Desktop Sidebar (hidden on mobile) */}
             <aside
-                className="hidden lg:flex flex-col h-screen sticky top-0"
+                className="hidden lg:flex flex-col h-screen sticky top-0 sidebar-desktop"
                 style={{
                     width: 240,
-                    background: "var(--bg-sidebar)",
-                    borderRight: "1px solid var(--border-light)",
                     padding: "1.5rem 1rem",
                 }}
             >
@@ -86,13 +84,10 @@ export default function Sidebar({ user }: { user: { name: string; email: string 
 
             {/* Mobile Bottom Navigation (hidden on lg) */}
             <nav
-                className="fixed bottom-0 left-0 right-0 z-50 lg:hidden flex justify-around items-center"
+                className="fixed bottom-0 left-0 right-0 z-50 lg:hidden flex justify-around items-center sidebar-mobile"
                 style={{
-                    background: "var(--bg-card)",
-                    borderTop: "1px solid var(--border-light)",
                     paddingBottom: "env(safe-area-inset-bottom)",
                     height: "64px",
-                    boxShadow: "0 -4px 6px -1px rgba(0, 0, 0, 0.02)"
                 }}
             >
                 {navItems.map((item) => {
