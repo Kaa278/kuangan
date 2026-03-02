@@ -68,23 +68,81 @@ export default function AIScanPage() {
             const video = videoRef.current;
             const canvas = canvasRef.current;
 
-            // Set dimensions match video
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            let drawWidth = video.videoWidth;
+            let drawHeight = video.videoHeight;
+            const max_size = 1000;
+            if (drawWidth > drawHeight) {
+                if (drawWidth > max_size) {
+                    drawHeight *= max_size / drawWidth;
+                    drawWidth = max_size;
+                }
+            } else {
+                if (drawHeight > max_size) {
+                    drawWidth *= max_size / drawHeight;
+                    drawHeight = max_size;
+                }
+            }
+
+            canvas.width = drawWidth;
+            canvas.height = drawHeight;
 
             const ctx = canvas.getContext("2d");
             if (!ctx) return;
 
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, 0, 0, drawWidth, drawHeight);
 
             canvas.toBlob((blob) => {
                 if (blob) {
                     const file = new File([blob], "receipt_capture.jpg", { type: "image/jpeg" });
-                    handleLocalFile(file);
+                    setImage(file);
+                    setPreview(URL.createObjectURL(file));
+                    setResult(null);
+                    setError("");
                     stopCamera();
                 }
-            }, "image/jpeg", 0.9);
+            }, "image/jpeg", 0.7);
         }
+    };
+
+    const compressImage = (file: File): Promise<File> => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    let width = img.width;
+                    let height = img.height;
+                    const max_size = 1000;
+                    if (width > height) {
+                        if (width > max_size) {
+                            height *= max_size / width;
+                            width = max_size;
+                        }
+                    } else {
+                        if (height > max_size) {
+                            width *= max_size / height;
+                            height = max_size;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext("2d");
+                    ctx?.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            resolve(new File([blob], file.name || "compressed.jpg", { type: "image/jpeg" }));
+                        } else {
+                            resolve(file);
+                        }
+                    }, "image/jpeg", 0.7);
+                };
+                img.onerror = () => resolve(file);
+            };
+            reader.onerror = () => resolve(file);
+        });
     };
 
     useEffect(() => {
@@ -95,10 +153,13 @@ export default function AIScanPage() {
         return () => stopCamera();
     }, []);
 
-    const handleLocalFile = useCallback((file: File) => {
+    const handleLocalFile = useCallback(async (file: File) => {
         if (!file.type.startsWith("image/")) { setError("File harus berupa gambar."); return; }
-        setImage(file);
-        setPreview(URL.createObjectURL(file));
+        setLoading(true);
+        const compressed = await compressImage(file);
+        setLoading(false);
+        setImage(compressed);
+        setPreview(URL.createObjectURL(compressed));
         setResult(null);
         setError("");
     }, []);

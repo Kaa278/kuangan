@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import sharp from "sharp";
+
 import { parseReceiptImage, AIResponse } from "@/lib/ai";
 
 const AI_SCAN_LIMIT = 50; // per day per user
@@ -34,14 +34,8 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Compress image: resize to max 1000px width, convert to jpeg 70%
-    const compressed = await sharp(buffer)
-        .resize({ width: 1000, withoutEnlargement: true })
-        .jpeg({ quality: 70 })
-        .toBuffer();
-
-    const base64 = compressed.toString("base64");
-    const imageSize = compressed.length;
+    const base64 = buffer.toString("base64");
+    const imageSize = buffer.length;
 
     // Call AI Utility
     let rawResponse = "";

@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["bcryptjs", "@prisma/client", "@prisma/adapter-pg", "pg", "sharp"],
+  serverExternalPackages: ["bcryptjs", "@prisma/client", "@prisma/adapter-pg", "pg"],
   outputFileTracingIncludes: {
     "**/*": []
   },
